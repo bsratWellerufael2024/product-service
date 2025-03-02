@@ -9,22 +9,6 @@ export class ProductVariantService {
     @InjectRepository(ProductVariant)
     private variantRepository: Repository<ProductVariant>,
   ) {}
-
-  //   async createProductVariant(variantData: {
-  //     size: string;
-  //     color: string;
-  //     price: number;
-  //     weight: number;
-  //   }) {
-  //     const newVariant = this.variantRepository.create({
-  //       size: variantData.size,
-  //       color: variantData.color,
-  //       price: variantData.price,
-  //       weight: variantData.weight,
-  //     });
-
-  //     return await this.variantRepository.save(newVariant); // ✅ Save to database
-  //   }
   async createProductVariant(variantData: Partial<ProductVariant>) {
     // ✅ Accept Partial<ProductVariant>
     const newVariant = this.variantRepository.create(variantData);

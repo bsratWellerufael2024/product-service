@@ -24,6 +24,6 @@ export class UnitCoversion {
   @CreateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
   
-  // @OneToMany(() => Products, (product) => product.unitConversion)
-  // products: Products[];
+  @OneToMany(() => Products, (product) => product.unitConversion)
+  products: Products[];
 }

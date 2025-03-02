@@ -10,7 +10,12 @@ import { UnitCoversion } from './entities/unitConversion.entity';
 import { ProductVariant } from './entities/variant.entity';
 import { ProductController } from './controller/product.controller';
 import { CategoryService } from './service/category.service';
+// import { UnitConversionService } from './service/unitConversion.service';
 import { UnitConversionService } from './service/unitConversion.service';
+import { CategoryController } from './controller/category.controller';
+import { UnitConversionController } from './controller/unitConversionRate.controller';
+import { VariantController } from './controller/variant.controller';
+import { ProductVariantService } from './service/variant.service';
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -39,7 +44,19 @@ import { UnitConversionService } from './service/unitConversion.service';
       }),
     }),
   ],
-  controllers: [AppController,ProductController],
-  providers: [AppService, ProductService,CategoryService,UnitConversionService],
+  controllers: [
+    AppController,
+    ProductController,
+    CategoryController,
+    UnitConversionController,
+    VariantController,
+  ],
+  providers: [
+    AppService,
+    ProductService,
+    CategoryService,
+    UnitConversionService,
+    ProductVariantService,
+  ],
 })
 export class AppModule {}

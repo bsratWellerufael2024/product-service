@@ -1,46 +1,25 @@
-// import { Column, Entity, PrimaryGeneratedColumn,ManyToOne, CreateDateColumn} from "typeorm";
-// import { Products } from "./product.entity";
-
-// @Entity('variant')
-// export class ProductVariant {
-//   @PrimaryGeneratedColumn()
-//   id: number;
-//   @Column()
-//   productId: number;
-
-//   //    @ManyToOne(() => Products, (product) => Products.products, {
-//   //        eager: true,
-//   //        nullable: true,
-//   //      })
-//   @Column()
-//   size: string;
-//   @Column()
-//   color: string;
-//   @Column()
-//   price: string;
-//   @Column({default:0})
-//   quantity_available: string;
-//   @Column()
-//   weight: string;
-//   @CreateDateColumn({ type: 'timestamp' })
-//   createdAt: Date;
-//   @CreateDateColumn({ type: 'timestamp' })
-//   updatedAt: Date;
-// }
 import {
   Column,
   Entity,
   PrimaryGeneratedColumn,
+  ManyToOne,
   CreateDateColumn,
+  UpdateDateColumn,
+  JoinColumn,
 } from 'typeorm';
+import { Products } from './product.entity';
 
 @Entity('variant')
 export class ProductVariant {
   @PrimaryGeneratedColumn()
   id: number;
 
-  // @Column()
-  // productId: number;
+  @ManyToOne(() => Products, (product) => product.variants, {
+    eager: true,
+    nullable: true,
+  })
+  @JoinColumn({ name: 'productId' }) // Explicitly linking to the foreign key
+  product: Products;
 
   @Column()
   size: string;
@@ -48,18 +27,18 @@ export class ProductVariant {
   @Column()
   color: string;
 
-  @Column('decimal', { precision: 10, scale: 2 }) // ✅ Ensure price is a decimal
+  @Column('decimal', { precision: 10, scale: 2 }) // Correct decimal type for price
   price: number;
 
   @Column({ default: 0 })
-  quantity_available: number; // ✅ Change from string to number
+  quantity_available: number; // Change from string to number
 
-  @Column('decimal', { precision: 10, scale: 2 }) // ✅ Ensure weight is a decimal
+  @Column('decimal', { precision: 10, scale: 2 }) // Correct decimal type for weight
   weight: number;
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
-  @CreateDateColumn({ type: 'timestamp' })
+  @UpdateDateColumn({ type: 'timestamp' }) // Corrected to track updates
   updatedAt: Date;
 }
