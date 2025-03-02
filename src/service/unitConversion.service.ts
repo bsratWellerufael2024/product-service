@@ -1,30 +1,6 @@
-// import { Injectable } from "@nestjs/common";
-// import { InjectRepository } from "@nestjs/typeorm";
-// import { Repository } from "typeorm";
-// import { UnitCoversion } from "src/entities/unitConversion.entity";
-// @Injectable()
-// export class UnitConversionService {
-//   constructor(
-//     @InjectRepository(UnitCoversion)
-//     private unitRepository: Repository<UnitCoversion>,
-//   ) {}
-//   async unitCoversion(unitData:{
-//       baseUnit:string,
-//       containerUnit:string,
-//       rate:number
-//   }){
-//     const newConversion=this.unitRepository.create({
-//         baseUnit:unitData.baseUnit,
-//         containerUnit:unitData.containerUnit,
-//         conversionRate:unitData.rate
-//     })
-//     return await this.unitRepository.save(newConversion)
-//   }
-// }
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-// import { UnitCoversion } from './unit.entity';
 import { UnitCoversion } from 'src/entities/unitConversion.entity';
 
 @Injectable()
@@ -33,8 +9,6 @@ export class UnitConversionService implements OnModuleInit {
     @InjectRepository(UnitCoversion)
     private unitConversionRepository: Repository<UnitCoversion>,
   ) {}
-
-  // Default conversion rates (can be extended)
   private defaultConversions: {
     baseUnit: string;
     containerUnit: string;
@@ -68,21 +42,16 @@ export class UnitConversionService implements OnModuleInit {
       }
     }
   }
-
-  // Get conversion suggestions
   async getSuggestions(baseUnit: string) {
     const suggestions = await this.unitConversionRepository.find({
       where: { baseUnit },
     });
-
     return {
       success: true,
       message: `Suggested conversions for '${baseUnit}'`,
       data: suggestions,
     };
   }
-
-  // Allow users to override or add conversion rates
   async addOrUpdateConversion(
     baseUnit: string,
     containerUnit: string,
@@ -103,9 +72,7 @@ export class UnitConversionService implements OnModuleInit {
         isUserDefined: true,
       });
     }
-
     await this.unitConversionRepository.save(conversion);
-
     return {
       success: true,
       message: 'Conversion rate updated',

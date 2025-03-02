@@ -12,7 +12,7 @@ export class UnitCoversion {
   @Column()
   containerUnit: string;
 
-  @Column('float', { default: 1 }) // Ensures conversion rate is stored correctly
+  @Column('float', { default: 1 }) 
   conversionRate: number;
 
   @Column({ default: false })

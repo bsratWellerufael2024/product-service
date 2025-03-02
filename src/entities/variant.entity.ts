@@ -18,8 +18,8 @@ export class ProductVariant {
     eager: true,
     nullable: true,
   })
-  @JoinColumn({ name: 'productId' }) // Explicitly linking to the foreign key
-  product: Products;
+  @JoinColumn({ name: 'productId' }) 
+  productId: Products;
 
   @Column()
   size: string;
@@ -27,13 +27,13 @@ export class ProductVariant {
   @Column()
   color: string;
 
-  @Column('decimal', { precision: 10, scale: 2 }) // Correct decimal type for price
+  @Column('decimal', { precision: 10, scale: 2 })
   price: number;
 
   @Column({ default: 0 })
-  quantity_available: number; // Change from string to number
+  quantity_available: number; 
 
-  @Column('decimal', { precision: 10, scale: 2 }) // Correct decimal type for weight
+  @Column('decimal', { precision: 10, scale: 2,default:1 })
   weight: number;
 
   @CreateDateColumn({ type: 'timestamp' })

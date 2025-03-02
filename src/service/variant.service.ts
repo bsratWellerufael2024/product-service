@@ -10,7 +10,8 @@ export class ProductVariantService {
     private variantRepository: Repository<ProductVariant>,
   ) {}
   async createProductVariant(variantData: Partial<ProductVariant>) {
-    // ✅ Accept Partial<ProductVariant>
+   
+     console.log("ProductId from product-service",variantData.productId);
     const newVariant = this.variantRepository.create(variantData);
     return await this.variantRepository.save(newVariant);
   }

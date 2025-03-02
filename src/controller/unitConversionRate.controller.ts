@@ -9,6 +9,7 @@ export class UnitConversionController {
    getSuggestion(data:any){
      return this.unitConversion.getSuggestions(data)
    }
+   
   @MessagePattern('update-rate')
   createProduct(body: any) {
     return this.unitConversion.addOrUpdateConversion(

@@ -1,4 +1,3 @@
-// import { UnitCoversion } from 'src/unitconversion/unit.entity';
 import { UnitCoversion } from './unitConversion.entity';
 import {
   Column,
@@ -11,6 +10,7 @@ import {
 } from 'typeorm';
 import { Category } from './category.entity';
 import { ProductVariant } from './variant.entity';
+
 @Entity('products')
 export class Products {
   @PrimaryGeneratedColumn()
@@ -24,12 +24,11 @@ export class Products {
 
   @Column()
   baseUnit: string;
-
   @ManyToOne(() => UnitCoversion, (unitConversion) => unitConversion.products, {
     eager: true,
     nullable: true,
   })
-  @JoinColumn({ name: 'baseUnit', referencedColumnName: 'baseUnit' }) // Correct JoinColumn
+  @JoinColumn({ name: 'unitConversionId', referencedColumnName: 'id' }) // Use the primary key!
   unitConversion: UnitCoversion;
 
   @Column({ default: 0 })
@@ -42,7 +41,7 @@ export class Products {
   @JoinColumn({ name: 'categoryId' })
   category: Category;
 
-  @OneToMany(() => ProductVariant, (variant) => variant.product)
+  @OneToMany(() => ProductVariant, (variant) => variant.productId)
   variants: ProductVariant[];
 
   @Column()
