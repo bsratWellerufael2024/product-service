@@ -9,12 +9,22 @@ export class CategoryController {
   createProduct(categoryData: any) {
     return this.categoryService.createCategory(categoryData);
   }
-  @MessagePattern('get_all_categories') // 👈 Listening for this pattern
+  @MessagePattern('get_all_categories') 
   async getAllCategories(): Promise<string[]> {
     return this.categoryService.getAllCategories();
   }
-  
-  @MessagePattern('delete_category') // 👈 Listening for this pattern
+
+  @MessagePattern('update_category') 
+  async updateCategory(
+    @Payload() payload: { categoryId: number; category: string },
+  ): Promise<{ message: string }> {
+    return this.categoryService.updateCategory(
+      payload.categoryId,
+      payload.category,
+    );
+  }
+
+  @MessagePattern('delete_category') 
   async deleteCategory(
     @Payload() categoryId: number,
   ): Promise<{ message: string }> {
