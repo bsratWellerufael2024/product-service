@@ -4,8 +4,8 @@ import { Products } from './product.entity';
 export class Category {
   @PrimaryGeneratedColumn()
   id: number;
-  @Column({ unique: true })
-  name: string;
+  @Column()
+  category: string;
   @Column({ default: 'product catagory' })
   description: string;
 
@@ -14,7 +14,7 @@ export class Category {
 
   @CreateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
-  
+
   @OneToMany(() => Products, (product) => product.category)
   products: Products[];
 }

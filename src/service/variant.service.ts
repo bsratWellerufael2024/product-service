@@ -11,7 +11,7 @@ export class ProductVariantService {
   ) {}
   async createProductVariant(variantData: Partial<ProductVariant>) {
    
-     console.log("ProductId from product-service",variantData.productId);
+    //  console.log("ProductId from product-service",variantData.productId);
     const newVariant = this.variantRepository.create(variantData);
     return await this.variantRepository.save(newVariant);
   }

@@ -16,6 +16,7 @@ import { CategoryController } from './controller/category.controller';
 import { UnitConversionController } from './controller/unitConversionRate.controller';
 import { VariantController } from './controller/variant.controller';
 import { ProductVariantService } from './service/variant.service';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -27,6 +28,7 @@ import { ProductVariantService } from './service/variant.service';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    EventEmitterModule.forRoot(),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

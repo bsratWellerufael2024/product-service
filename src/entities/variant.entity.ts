@@ -15,11 +15,10 @@ export class ProductVariant {
   id: number;
 
   @ManyToOne(() => Products, (product) => product.variants, {
-    eager: true,
-    nullable: true,
+    onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'productId' }) 
-  productId: Products;
+  @JoinColumn({ name: 'productId' })
+  product: Products;
 
   @Column()
   size: string;
@@ -31,9 +30,9 @@ export class ProductVariant {
   price: number;
 
   @Column({ default: 0 })
-  quantity_available: number; 
+  quantity_available: number;
 
-  @Column('decimal', { precision: 10, scale: 2,default:1 })
+  @Column('decimal', { precision: 10, scale: 2, default: 1 })
   weight: number;
 
   @CreateDateColumn({ type: 'timestamp' })

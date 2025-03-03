@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository} from "@nestjs/typeorm";
 import { Category } from "src/entities/category.entity";
 import { Repository } from "typeorm";
+import { NotFoundException,BadRequestException } from "@nestjs/common";
 @Injectable()
 export class CategoryService {
   constructor(
@@ -9,13 +10,37 @@ export class CategoryService {
     private categoryRepository: Repository<Category>,
   ) {}
 
-  async createCategory(categoryData: { name: string; description:string }) {
-    const newCategory= this.categoryRepository.create(
-        {
-            name:categoryData.name,
-            description:categoryData.description
-        }
-    )
-     return  await this.categoryRepository.save(newCategory)
+  async createCategory(categoryData: {
+    category: string;
+    description: string;
+  }) {
+    const newCategory = this.categoryRepository.create({
+      category: categoryData.category,
+      description: categoryData.description,
+    });
+    return await this.categoryRepository.save(newCategory);
+  }
+  async getAllCategories(): Promise<string[]> {
+    const categories = await this.categoryRepository.find();
+    return categories.map((category) => category.category); // Assuming category has `categoryName`
+  }
+
+  async deleteCategory(categoryId: number): Promise<{ message: string }> {
+    const category = await this.categoryRepository.findOne({
+      where: { id: categoryId },
+    });
+
+    if (!category) {
+      throw new NotFoundException(`Category with ID ${categoryId} not found`);
+    }
+
+    try {
+      await this.categoryRepository.remove(category);
+      return { message: `Category ${categoryId} deleted successfully` };
+    } catch (error) {
+      throw new BadRequestException(
+        `Error deleting category: ${error.message}`,
+      );
+    }
   }
 }
