@@ -10,7 +10,7 @@ import { UnitCoversion } from './entities/unitConversion.entity';
 import { ProductVariant } from './entities/variant.entity';
 import { ProductController } from './controller/product.controller';
 import { CategoryService } from './service/category.service';
-// import { UnitConversionService } from './service/unitConversion.service';
+import { ClientsModule,Transport } from '@nestjs/microservices';
 import { UnitConversionService } from './service/unitConversion.service';
 import { CategoryController } from './controller/category.controller';
 import { UnitConversionController } from './controller/unitConversionRate.controller';
@@ -19,6 +19,16 @@ import { ProductVariantService } from './service/variant.service';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 @Module({
   imports: [
+    ClientsModule.register([
+      {
+        name: 'REDIS_CLIENT',
+        transport: Transport.REDIS,
+        options: {
+          host: 'localhost', // Change if Redis is hosted elsewhere
+          port: 6379, // Default Redis port
+        },
+      },
+    ]),
     TypeOrmModule.forFeature([
       Products,
       Category,
