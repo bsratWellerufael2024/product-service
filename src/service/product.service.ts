@@ -91,32 +91,6 @@ export class ProductService {
     }
   }
 
-  async getAllProduct(): Promise<ApiResponse<any>> {
-    try {
-      const products = await this.productRepository.find({
-        relations: ['category', 'unitConversion'],
-      });
-      const allProducts = products.map((product) => ({
-        productName: product.productName,
-        specification: product.specification,
-        baseUnit: product.baseUnit,
-        containerUnit: product.unitConversion
-          ? product.unitConversion.containerUnit
-          : 'carton',
-        category: product.category ? product.category.category : 'Unknown',
-        openingQty: product.openingQty,
-      }));
-      return new ApiResponse(true, 'Products Fetched Successfuly', allProducts);
-    } catch (error) {
-      throw new RpcException(
-        JSON.stringify({
-          success: false,
-          message: error.message || 'Internal server error',
-          error: error.name || 'UnknownError',
-        }),
-      );
-    }
-  }
   async getProductById(productId: number) {
     const product = await this.productRepository.findOne({
       where: { productId },
@@ -182,12 +156,4 @@ export class ProductService {
     return { message: `Product ID ${productId} updated successfully` };
   }
 
-  async getProductsDetail(productIds: number[]) {
-    if (!productIds.length) return [];
-    const products = await this.productRepository.find({
-      where: { productId: In(productIds) },
-    });
-    console.log('✅ Found products:', products);
-    return products
-  }
 }

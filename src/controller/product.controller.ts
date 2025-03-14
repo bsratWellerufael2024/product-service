@@ -1,10 +1,8 @@
 import { Controller, UseGuards } from "@nestjs/common";
 import { MessagePattern ,EventPattern} from "@nestjs/microservices";
 import { ProductService } from "src/service/product.service";
-import { FilterProductsDto } from "src/dto/filter-products.dto";
 import { Products } from "src/entities/product.entity";
-import { AuthGuard } from "src/guards/jwt-auth.guard";
-import { Payload } from "@nestjs/microservices";
+
 @Controller()
 export class ProductController {
   constructor(private productService: ProductService) {}
@@ -12,12 +10,6 @@ export class ProductController {
   createProduct(productData: any) {
     return this.productService.createProduct(productData);
   }
-
-  @MessagePattern('get-all-product')
-  getAllProduct() {
-    return this.productService.getAllProduct();
-  }
-
 
   @MessagePattern('get-one-product')
   getOneProduct(id: any) {
@@ -42,9 +34,4 @@ export class ProductController {
     return { message: `Product ID ${productId} updated successfully` };
   }
 
-  @MessagePattern('get_produts_details')
-  async getProductsDetail({ productIds }: { productIds: number[] }) {
-    console.log('📩 Received productIds:', productIds); 
-    return this.productService.getProductsDetail(productIds);
-  }
 }
