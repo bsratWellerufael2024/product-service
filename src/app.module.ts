@@ -17,8 +17,15 @@ import { UnitConversionController } from './controller/unitConversionRate.contro
 import { VariantController } from './controller/variant.controller';
 import { ProductVariantService } from './service/variant.service';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { JwtModule } from '@nestjs/jwt';
+import { jwtContants } from './constants/constant';
 @Module({
   imports: [
+    JwtModule.register({
+      global: true, // Ensure it's global
+      secret: jwtContants.secret,
+      signOptions: { expiresIn: '60m' },
+    }),
     ClientsModule.register([
       {
         name: 'REDIS_CLIENT',

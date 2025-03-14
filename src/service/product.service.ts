@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FilterProductsDto } from 'src/dto/filter-products.dto';
 import { Category } from 'src/entities/category.entity';
 import { Products } from 'src/entities/product.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { NotFoundException } from '@nestjs/common';
 import { UpdateProductDto } from 'src/dto/update-product.dto';
 import { ProductUpdatedEvent } from 'src/events/product-updated.event';
@@ -12,6 +12,7 @@ import { ApiResponse } from 'src/common/api-response.dto';
 import { RpcException } from '@nestjs/microservices';
 import { Inject } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
+
 @Injectable()
 export class ProductService {
   constructor(
@@ -73,10 +74,10 @@ export class ProductService {
           openingQty: savedProduct.openingQty,
         },
       };
-      console.log('📢 Emitting product-created event:', eventPayload);
+      console.log(' Emitting product-created event:', eventPayload);
       this.redisClient.emit('product.created', eventPayload).subscribe({
-        next: () => console.log('✅ Event successfully published to Redis'),
-        error: (err) => console.error('❌ Error publishing event:', err),
+        next: () => console.log(' Event successfully published to Redis'),
+        error: (err) => console.error(' Error publishing event:', err),
       });
       return new ApiResponse(true, 'Product created  successfuly!');
     } catch (error) {
@@ -115,48 +116,6 @@ export class ProductService {
         }),
       );
     }
-  }
-
-  async findFiltered(filterDto: FilterProductsDto) {
-    const {
-      category,
-      minPrice,
-      maxPrice,
-      page = 1,
-      limit = 10,
-      sortBy = 'productName',
-      order = 'ASC',
-    } = filterDto;
-
-    const query = this.productRepository
-      .createQueryBuilder('product')
-      .leftJoinAndSelect('product.category', 'category');
-
-    if (category) {
-      query.andWhere('category.category = :category', { category });
-    }
-
-    if (minPrice) {
-      query.andWhere('product.cost_price >= :minPrice', { minPrice });
-    }
-
-    if (maxPrice) {
-      query.andWhere('product.selling_price <= :maxPrice', { maxPrice });
-    }
-    const validSortFields = [
-      'productName',
-      'cost_price',
-      'selling_price',
-      'category',
-    ];
-    if (validSortFields.includes(sortBy)) {
-      query.orderBy(`product.${sortBy}`, order as 'ASC' | 'DESC');
-    } else {
-      query.orderBy('product.productName', 'ASC');
-    }
-    query.skip((page - 1) * limit).take(limit);
-
-    return query.getMany();
   }
   async getProductById(productId: number) {
     const product = await this.productRepository.findOne({
@@ -223,7 +182,12 @@ export class ProductService {
     return { message: `Product ID ${productId} updated successfully` };
   }
 
-  async getProductsByIds(productIds: number[]) {
-    return this.productRepository.findByIds(productIds);
+  async getProductsDetail(productIds: number[]) {
+    if (!productIds.length) return [];
+    const products = await this.productRepository.find({
+      where: { productId: In(productIds) },
+    });
+    console.log('✅ Found products:', products);
+    return products
   }
 }

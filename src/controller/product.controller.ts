@@ -1,8 +1,10 @@
-import { Controller } from "@nestjs/common";
+import { Controller, UseGuards } from "@nestjs/common";
 import { MessagePattern ,EventPattern} from "@nestjs/microservices";
 import { ProductService } from "src/service/product.service";
 import { FilterProductsDto } from "src/dto/filter-products.dto";
 import { Products } from "src/entities/product.entity";
+import { AuthGuard } from "src/guards/jwt-auth.guard";
+import { Payload } from "@nestjs/microservices";
 @Controller()
 export class ProductController {
   constructor(private productService: ProductService) {}
@@ -16,10 +18,6 @@ export class ProductController {
     return this.productService.getAllProduct();
   }
 
-  @MessagePattern({ cmd: 'get_filtered_products' })
-  async handleGetFilteredProducts(filterDto: FilterProductsDto) {
-    return this.productService.findFiltered(filterDto);
-  }
 
   @MessagePattern('get-one-product')
   getOneProduct(id: any) {
@@ -43,8 +41,10 @@ export class ProductController {
     console.log(`✅ ProductService: Product ID ${productId} updated`);
     return { message: `Product ID ${productId} updated successfully` };
   }
-  @MessagePattern('get.products.by.ids')
-  async getProductsByIds(productIds: number[]) {
-    return this.productService.getProductsByIds(productIds);
+
+  @MessagePattern('get_produts_details')
+  async getProductsDetail({ productIds }: { productIds: number[] }) {
+    console.log('📩 Received productIds:', productIds); 
+    return this.productService.getProductsDetail(productIds);
   }
 }
