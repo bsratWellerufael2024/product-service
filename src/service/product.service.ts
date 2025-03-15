@@ -23,38 +23,102 @@ export class ProductService {
     @Inject('REDIS_CLIENT') private readonly redisClient: ClientProxy, // Ensure this is properly injected
   ) {}
 
+  // async createProduct(productData: {
+  //   name: string;
+  //   specification: string;
+  //   openingQty: number;
+  //   cost_price: number;
+  //   selling_price: number;
+  //   category: string;
+  //   baseUnit: string;
+  // }): Promise<ApiResponse<any>> {
+  //   try {
+  //     if (
+  //       !productData.name ||
+  //       !productData.baseUnit
+
+  //     ) {
+  //       throw new RpcException(
+  //         JSON.stringify({
+  //           success: false,
+  //           message:
+  //             'Missing required fields: name, category, or baseUnit,category',
+  //           error: 'ValidationError',
+  //         }),
+  //       );
+  //     }
+
+  //     const category = await this.categoryRepository.findOne({
+  //       where: { category: productData.category },
+  //     });
+
+  //     if (!category) {
+  //       throw new Error(`Category '${productData.category}' not found`);
+  //     }
+
+  //     const newProduct = this.productRepository.create({
+  //       productName: productData.name,
+  //       specification: productData.specification,
+  //       openingQty: productData.openingQty,
+  //       baseUnit: productData.baseUnit,
+  //       cost_price: productData.cost_price,
+  //       selling_price: productData.selling_price,
+  //       category: category,
+  //     });
+  //     const savedProduct = await this.productRepository.save(newProduct);
+  //     const eventPayload = {
+  //       data: {
+  //         productId: savedProduct.productId,
+  //         name: savedProduct.productName,
+  //         openingQty: savedProduct.openingQty,
+  //       },
+  //     };
+  //     console.log(' Emitting product-created event:', eventPayload);
+  //     this.redisClient.emit('product.created', eventPayload).subscribe({
+  //       next: () => console.log(' Event successfully published to Redis'),
+  //       error: (err) => console.error(' Error publishing event:', err),
+  //     });
+  //     return new ApiResponse(true, 'Product created  successfuly!');
+  //   } catch (error) {
+  //     throw new RpcException(
+  //       JSON.stringify({
+  //         success: false,
+  //         message: error.message || 'Failed to create product',
+  //         error: error.name || 'UnknownError',
+  //       }),
+  //     );
+  //   }
+  // }
+
   async createProduct(productData: {
     name: string;
     specification: string;
     openingQty: number;
     cost_price: number;
     selling_price: number;
-    category: string;
+    category?: string; // Make category optional
     baseUnit: string;
   }): Promise<ApiResponse<any>> {
     try {
-      if (
-        !productData.name ||
-        !productData.category ||
-        !productData.baseUnit ||
-        !productData.category
-      ) {
+      if (!productData.name || !productData.baseUnit) {
         throw new RpcException(
           JSON.stringify({
             success: false,
-            message:
-              'Missing required fields: name, category, or baseUnit,category',
+            message: 'Missing required fields: name or baseUnit',
             error: 'ValidationError',
           }),
         );
       }
 
-      const category = await this.categoryRepository.findOne({
-        where: { category: productData.category },
-      });
+      let category = null;
+      if (productData.category) {
+        category = await this.categoryRepository.findOne({
+          where: { category: productData.category },
+        });
 
-      if (!category) {
-        throw new Error(`Category '${productData.category}' not found`);
+        if (!category) {
+          throw new Error(`Category '${productData.category}' not found`);
+        }
       }
 
       const newProduct = this.productRepository.create({
@@ -64,9 +128,11 @@ export class ProductService {
         baseUnit: productData.baseUnit,
         cost_price: productData.cost_price,
         selling_price: productData.selling_price,
-        category: category,
+        category: category || null, // Assign category if available, else null
       });
+
       const savedProduct = await this.productRepository.save(newProduct);
+
       const eventPayload = {
         data: {
           productId: savedProduct.productId,
@@ -74,12 +140,14 @@ export class ProductService {
           openingQty: savedProduct.openingQty,
         },
       };
+
       console.log(' Emitting product-created event:', eventPayload);
       this.redisClient.emit('product.created', eventPayload).subscribe({
         next: () => console.log(' Event successfully published to Redis'),
         error: (err) => console.error(' Error publishing event:', err),
       });
-      return new ApiResponse(true, 'Product created  successfuly!');
+
+      return new ApiResponse(true, 'Product created successfully!');
     } catch (error) {
       throw new RpcException(
         JSON.stringify({
@@ -117,17 +185,37 @@ export class ProductService {
       })),
     };
   }
+  
   async deleteProductByName(productName: string): Promise<{ message: string }> {
     const product = await this.productRepository.findOne({
       where: { productName },
+      select: ['productId', 'productName']
     });
+
+    
+
     if (!product) {
       throw new NotFoundException(
         `Product with name "${productName}" not found`,
       );
     }
 
+    console.log(' Deleting product:', product.productId); 
+
+    
+    this.redisClient
+      .emit('product.deleted', { productId: product.productId })
+      .subscribe({
+        next: () =>
+          console.log(
+            ` Event emitted: product.deleted for ID ${product.productId}`,
+          ),
+        error: (err) =>
+          console.error(' Error emitting product.deleted event:', err),
+      });
+
     await this.productRepository.remove(product);
+
     return {
       message: `Product "${productName}" has been deleted successfully`,
     };
@@ -156,4 +244,12 @@ export class ProductService {
     return { message: `Product ID ${productId} updated successfully` };
   }
 
+  async getProductsDetail(productIds: number[]) {
+    if (!productIds.length) return [];
+    const products = await this.productRepository.find({
+      where: { productId: In(productIds) },
+    });
+    console.log(' Found products:', products);
+    return products;
+  }
 }

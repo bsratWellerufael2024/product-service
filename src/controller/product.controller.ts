@@ -30,8 +30,13 @@ export class ProductController {
 
     await this.productService.updateProduct(productId, updateData);
 
-    console.log(`✅ ProductService: Product ID ${productId} updated`);
+    console.log(`ProductService: Product ID ${productId} updated`);
     return { message: `Product ID ${productId} updated successfully` };
   }
 
+  //listning from inventory_summary
+  @MessagePattern('get_produts_details')
+  async getProductsDetail({ productIds }: { productIds: number[] }) {
+    return this.productService.getProductsDetail(productIds);
+  }
 }

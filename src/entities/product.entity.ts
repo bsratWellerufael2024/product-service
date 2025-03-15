@@ -34,15 +34,15 @@ export class Products {
 
   @Column({ default: 0 })
   openingQty: number;
-
   @ManyToOne(() => Category, (category) => category.products, {
     eager: true,
+    nullable: true, 
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'categoryId', referencedColumnName: 'id' }) 
-  category: Category;
+  @JoinColumn({ name: 'categoryId', referencedColumnName: 'id' })
+  category?: Category; 
 
-  @OneToMany(() => ProductVariant, (variant) => variant.product) 
+  @OneToMany(() => ProductVariant, (variant) => variant.product)
   variants: ProductVariant[];
   @Column()
   cost_price: number;
