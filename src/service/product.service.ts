@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FilterProductsDto } from 'src/dto/filter-products.dto';
+
 import { Category } from 'src/entities/category.entity';
 import { Products } from 'src/entities/product.entity';
 import { In, Repository } from 'typeorm';
 import { NotFoundException } from '@nestjs/common';
 import { UpdateProductDto } from 'src/dto/update-product.dto';
-import { ProductUpdatedEvent } from 'src/events/product-updated.event';
+
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ApiResponse } from 'src/common/api-response.dto';
 import { RpcException } from '@nestjs/microservices';
@@ -20,75 +20,8 @@ export class ProductService {
     @InjectRepository(Category)
     private categoryRepository: Repository<Category>,
     private eventEmitter: EventEmitter2,
-    @Inject('REDIS_CLIENT') private readonly redisClient: ClientProxy, // Ensure this is properly injected
+    @Inject('REDIS_CLIENT') private readonly redisClient: ClientProxy,
   ) {}
-
-  // async createProduct(productData: {
-  //   name: string;
-  //   specification: string;
-  //   openingQty: number;
-  //   cost_price: number;
-  //   selling_price: number;
-  //   category: string;
-  //   baseUnit: string;
-  // }): Promise<ApiResponse<any>> {
-  //   try {
-  //     if (
-  //       !productData.name ||
-  //       !productData.baseUnit
-
-  //     ) {
-  //       throw new RpcException(
-  //         JSON.stringify({
-  //           success: false,
-  //           message:
-  //             'Missing required fields: name, category, or baseUnit,category',
-  //           error: 'ValidationError',
-  //         }),
-  //       );
-  //     }
-
-  //     const category = await this.categoryRepository.findOne({
-  //       where: { category: productData.category },
-  //     });
-
-  //     if (!category) {
-  //       throw new Error(`Category '${productData.category}' not found`);
-  //     }
-
-  //     const newProduct = this.productRepository.create({
-  //       productName: productData.name,
-  //       specification: productData.specification,
-  //       openingQty: productData.openingQty,
-  //       baseUnit: productData.baseUnit,
-  //       cost_price: productData.cost_price,
-  //       selling_price: productData.selling_price,
-  //       category: category,
-  //     });
-  //     const savedProduct = await this.productRepository.save(newProduct);
-  //     const eventPayload = {
-  //       data: {
-  //         productId: savedProduct.productId,
-  //         name: savedProduct.productName,
-  //         openingQty: savedProduct.openingQty,
-  //       },
-  //     };
-  //     console.log(' Emitting product-created event:', eventPayload);
-  //     this.redisClient.emit('product.created', eventPayload).subscribe({
-  //       next: () => console.log(' Event successfully published to Redis'),
-  //       error: (err) => console.error(' Error publishing event:', err),
-  //     });
-  //     return new ApiResponse(true, 'Product created  successfuly!');
-  //   } catch (error) {
-  //     throw new RpcException(
-  //       JSON.stringify({
-  //         success: false,
-  //         message: error.message || 'Failed to create product',
-  //         error: error.name || 'UnknownError',
-  //       }),
-  //     );
-  //   }
-  // }
 
   async createProduct(productData: {
     name: string;
@@ -96,7 +29,7 @@ export class ProductService {
     openingQty: number;
     cost_price: number;
     selling_price: number;
-    category?: string; // Make category optional
+    category?: string;
     baseUnit: string;
   }): Promise<ApiResponse<any>> {
     try {
@@ -128,24 +61,25 @@ export class ProductService {
         baseUnit: productData.baseUnit,
         cost_price: productData.cost_price,
         selling_price: productData.selling_price,
-        category: category || null, // Assign category if available, else null
+        category: category || null,
       });
 
       const savedProduct = await this.productRepository.save(newProduct);
 
+      // Emitting event with a consistent and flat payload structure
       const eventPayload = {
-        data: {
-          productId: savedProduct.productId,
-          name: savedProduct.productName,
-          openingQty: savedProduct.openingQty,
-        },
+        productId: savedProduct.productId,
+        productName: savedProduct.productName,
+        openingQty: savedProduct.openingQty,
       };
 
-      console.log(' Emitting product-created event:', eventPayload);
-      this.redisClient.emit('product.created', eventPayload).subscribe({
-        next: () => console.log(' Event successfully published to Redis'),
-        error: (err) => console.error(' Error publishing event:', err),
-      });
+      console.log(
+        '[ProductService] Emitting event: product.created with payload:',
+        eventPayload,
+      );
+
+      // Emit the event without wrapping in `data`
+      this.redisClient.emit('product.created', eventPayload);
 
       return new ApiResponse(true, 'Product created successfully!');
     } catch (error) {
@@ -185,14 +119,12 @@ export class ProductService {
       })),
     };
   }
-  
+
   async deleteProductByName(productName: string): Promise<{ message: string }> {
     const product = await this.productRepository.findOne({
       where: { productName },
-      select: ['productId', 'productName']
+      select: ['productId', 'productName'],
     });
-
-    
 
     if (!product) {
       throw new NotFoundException(
@@ -200,9 +132,8 @@ export class ProductService {
       );
     }
 
-    console.log(' Deleting product:', product.productId); 
+    console.log(' Deleting product:', product.productId);
 
-    
     this.redisClient
       .emit('product.deleted', { productId: product.productId })
       .subscribe({
@@ -224,24 +155,40 @@ export class ProductService {
   async updateProduct(
     productId: number,
     updateData: UpdateProductDto,
-  ): Promise<{ message: string }> {
+  ): Promise<ApiResponse<any>> {
     const product = await this.productRepository.findOne({
       where: { productId },
     });
 
     if (!product) {
-      throw new NotFoundException(`Product with ID ${productId} not found`);
+      throw new NotFoundException(
+        new ApiResponse(false, `Product with ID ${productId} not found`, null),
+      );
     }
+
     Object.assign(product, updateData);
+    const updatedProduct = await this.productRepository.save(product);
 
-    await this.productRepository.save(product);
+    // Emitting event with consistent payload structure
+    const eventPayload = {
+      productId: updatedProduct.productId,
+      productName: updatedProduct.productName,
+      openingQty: updatedProduct.openingQty,
+    };
 
-    this.eventEmitter.emit(
-      'product.updated',
-      new ProductUpdatedEvent(productId, updateData),
+    console.log(
+      '[ProductService] Emitting event: product.updated with payload:',
+      eventPayload,
     );
 
-    return { message: `Product ID ${productId} updated successfully` };
+    // Emit the event without wrapping in `data`
+    this.redisClient.emit('product.updated', eventPayload);
+
+    return new ApiResponse(
+      true,
+      `Product ID ${productId} updated successfully`,
+      updatedProduct,
+    );
   }
 
   async getProductsDetail(productIds: number[]) {
