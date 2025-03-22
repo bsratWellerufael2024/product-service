@@ -66,7 +66,6 @@ export class ProductService {
 
       const savedProduct = await this.productRepository.save(newProduct);
 
-      // Emitting event with a consistent and flat payload structure
       const eventPayload = {
         productId: savedProduct.productId,
         productName: savedProduct.productName,
@@ -77,8 +76,7 @@ export class ProductService {
         '[ProductService] Emitting event: product.created with payload:',
         eventPayload,
       );
-
-      // Emit the event without wrapping in `data`
+      
       this.redisClient.emit('product.created', eventPayload);
 
       return new ApiResponse(true, 'Product created successfully!');
