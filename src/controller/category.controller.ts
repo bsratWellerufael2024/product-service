@@ -10,7 +10,7 @@ export class CategoryController {
     return this.categoryService.createCategory(categoryData);
   }
   @MessagePattern('get_all_categories') 
-  async getAllCategories(): Promise<string[]> {
+  async getAllCategories() {
     return this.categoryService.getAllCategories();
   }
 

@@ -20,9 +20,15 @@ export class CategoryService {
     });
     return await this.categoryRepository.save(newCategory);
   }
-  async getAllCategories(): Promise<string[]> {
+
+  async getAllCategories() {
     const categories = await this.categoryRepository.find();
-    return categories.map((category) => category.category); 
+   
+    return categories.map((category)=>({
+      id:category.id,
+      category:category.category,
+      description:category.description
+    }))
   }
 
   async updateCategory(
