@@ -76,7 +76,7 @@ export class ProductService {
         '[ProductService] Emitting event: product.created with payload:',
         eventPayload,
       );
-      
+
       this.redisClient.emit('product.created', eventPayload);
 
       return new ApiResponse(true, 'Product created successfully!');
@@ -196,5 +196,16 @@ export class ProductService {
     });
     console.log(' Found products:', products);
     return products;
+  }
+
+  async getProductNameMapByIds(ids: string[]): Promise<Record<string, string>> {
+    const products = await this.productRepository.findBy({ productId: In(ids) });
+
+    const map: Record<string, string> = {};
+    products.forEach((product) => {
+      map[product.productId] = product.productName;
+    });
+
+    return map;
   }
 }

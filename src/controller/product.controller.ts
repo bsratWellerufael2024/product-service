@@ -2,6 +2,7 @@ import { Controller, UseGuards } from "@nestjs/common";
 import { MessagePattern ,EventPattern} from "@nestjs/microservices";
 import { ProductService } from "src/service/product.service";
 import { Products } from "src/entities/product.entity";
+import { Payload } from "@nestjs/microservices";
 
 @Controller()
 export class ProductController {
@@ -32,6 +33,14 @@ export class ProductController {
 
     console.log(`ProductService: Product ID ${productId} updated`);
     return { message: `Product ID ${productId} updated successfully` };
+  }
+
+  
+  @MessagePattern('get_products_by_ids')
+  async getProductsByIds(
+    @Payload() ids: string[],
+  ): Promise<Record<string, string>> {
+    return this.productService.getProductNameMapByIds(ids);
   }
 
   //listning from inventory_summary
