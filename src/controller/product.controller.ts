@@ -18,8 +18,8 @@ export class ProductController {
   }
 
   @MessagePattern('product-deleted')
-  deleteProduct(productName: any) {
-    return this.productService.deleteProductByName(productName);
+  deleteProduct(productId: any) {
+    return this.productService.deleteProductByName(productId);
   }
 
   @EventPattern('product-updated')

@@ -118,15 +118,15 @@ export class ProductService {
     };
   }
 
-  async deleteProductByName(productName: string): Promise<{ message: string }> {
+  async deleteProductByName(productId: number): Promise<{ message: string }> {
     const product = await this.productRepository.findOne({
-      where: { productName },
-      select: ['productId', 'productName'],
+      where: { productId },
+      select: ['productId', ],
     });
 
     if (!product) {
       throw new NotFoundException(
-        `Product with name "${productName}" not found`,
+        `Product with name "${productId}" not found`,
       );
     }
 
@@ -146,7 +146,7 @@ export class ProductService {
     await this.productRepository.remove(product);
 
     return {
-      message: `Product "${productName}" has been deleted successfully`,
+      message: `Product "${productId}" has been deleted successfully`,
     };
   }
 
