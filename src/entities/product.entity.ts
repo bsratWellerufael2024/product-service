@@ -36,11 +36,11 @@ export class Products {
   openingQty: number;
   @ManyToOne(() => Category, (category) => category.products, {
     eager: true,
-    nullable: true, 
+    nullable: true,
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'categoryId', referencedColumnName: 'id' })
-  category?: Category; 
+  category?: Category;
 
   @OneToMany(() => ProductVariant, (variant) => variant.product)
   variants: ProductVariant[];
@@ -58,4 +58,7 @@ export class Products {
 
   @CreateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
+
+  @Column({ nullable: true })
+  productCode: string; // ✅ Add this line
 }

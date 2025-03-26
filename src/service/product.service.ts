@@ -33,7 +33,17 @@ export class ProductService {
     baseUnit: string;
   }): Promise<ApiResponse<any>> {
     try {
-      if (!productData.name || !productData.baseUnit) {
+      const {
+        name,
+        specification,
+        openingQty,
+        cost_price,
+        selling_price,
+        baseUnit,
+        category: categoryName,
+      } = productData;
+
+      if (!name || !baseUnit) {
         throw new RpcException(
           JSON.stringify({
             success: false,
@@ -44,42 +54,61 @@ export class ProductService {
       }
 
       let category = null;
-      if (productData.category) {
+      if (categoryName) {
         category = await this.categoryRepository.findOne({
-          where: { category: productData.category },
+          where: { category: categoryName },
         });
-
         if (!category) {
-          throw new Error(`Category '${productData.category}' not found`);
+          throw new RpcException(
+            JSON.stringify({
+              success: false,
+              message: `Category '${categoryName}' not found`,
+              error: 'NotFoundError',
+            }),
+          );
         }
       }
 
+      // Step 1: Create the product without productCode
       const newProduct = this.productRepository.create({
-        productName: productData.name,
-        specification: productData.specification,
-        openingQty: productData.openingQty,
-        baseUnit: productData.baseUnit,
-        cost_price: productData.cost_price,
-        selling_price: productData.selling_price,
-        category: category || null,
+        productName: name,
+        specification,
+        openingQty,
+        cost_price,
+        selling_price,
+        baseUnit,
+        category,
       });
 
       const savedProduct = await this.productRepository.save(newProduct);
 
+      // Step 2: Generate productCode from DB ID (e.g., PROD-0001)
+      const productCode = `PROD-${savedProduct.productId.toString().padStart(4, '0')}`;
+
+      // Step 3: Update product with generated code
+      await this.productRepository.update(savedProduct.productId, {
+        productCode,
+      });
+
+      // Step 4: Emit event
       const eventPayload = {
         productId: savedProduct.productId,
+        productCode,
         productName: savedProduct.productName,
         openingQty: savedProduct.openingQty,
       };
 
       console.log(
-        '[ProductService] Emitting event: product.created with payload:',
+        '[ProductService] Emitting event: product.created',
         eventPayload,
       );
-
       this.redisClient.emit('product.created', eventPayload);
 
-      return new ApiResponse(true, 'Product created successfully!');
+      // Step 5: Return response with data
+      return new ApiResponse(true, 'Product created successfully!', {
+        productId: savedProduct.productId,
+        productCode,
+      });
     } catch (error) {
       throw new RpcException(
         JSON.stringify({
@@ -121,13 +150,11 @@ export class ProductService {
   async deleteProductByName(productId: number): Promise<{ message: string }> {
     const product = await this.productRepository.findOne({
       where: { productId },
-      select: ['productId', ],
+      select: ['productId'],
     });
 
     if (!product) {
-      throw new NotFoundException(
-        `Product with name "${productId}" not found`,
-      );
+      throw new NotFoundException(`Product with name "${productId}" not found`);
     }
 
     console.log(' Deleting product:', product.productId);
@@ -199,7 +226,9 @@ export class ProductService {
   }
 
   async getProductNameMapByIds(ids: string[]): Promise<Record<string, string>> {
-    const products = await this.productRepository.findBy({ productId: In(ids) });
+    const products = await this.productRepository.findBy({
+      productId: In(ids),
+    });
 
     const map: Record<string, string> = {};
     products.forEach((product) => {
