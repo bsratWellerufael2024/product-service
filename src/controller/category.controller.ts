@@ -9,22 +9,23 @@ export class CategoryController {
   createProduct(categoryData: any) {
     return this.categoryService.createCategory(categoryData);
   }
-  @MessagePattern('get_all_categories') 
+  @MessagePattern('get_all_categories')
   async getAllCategories() {
     return this.categoryService.getAllCategories();
   }
 
-  @MessagePattern('update_category') 
+  @MessagePattern('update_category')
   async updateCategory(
-    @Payload() payload: { categoryId: number; category: string },
-  ): Promise<{ message: string }> {
-    return this.categoryService.updateCategory(
-      payload.categoryId,
-      payload.category,
-    );
+    @Payload()
+    payload: {
+      id: number;
+      updateData: Partial<{ category?: string; description?: string }>;
+    },
+  ) {
+    return this.categoryService.updateCategory(payload.id, payload.updateData);
   }
 
-  @MessagePattern('delete_category') 
+  @MessagePattern('delete_category')
   async deleteCategory(
     @Payload() categoryId: number,
   ): Promise<{ message: string }> {

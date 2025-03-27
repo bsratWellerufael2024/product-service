@@ -23,17 +23,17 @@ export class CategoryService {
 
   async getAllCategories() {
     const categories = await this.categoryRepository.find();
-   
-    return categories.map((category)=>({
-      id:category.id,
-      category:category.category,
-      description:category.description
-    }))
+
+    return categories.map((category) => ({
+      id: category.id,
+      category: category.category,
+      description: category.description,
+    }));
   }
 
   async updateCategory(
     categoryId: number,
-    name: string,
+    updateData: Partial<{ category?: string; description?: string }>,
   ): Promise<{ message: string }> {
     const category = await this.categoryRepository.findOne({
       where: { id: categoryId },
@@ -43,17 +43,47 @@ export class CategoryService {
       throw new NotFoundException(`Category with ID ${categoryId} not found`);
     }
 
-    if (!name) {
-      throw new BadRequestException('Category name cannot be empty');
+    if (updateData.category !== undefined) {
+      if (!updateData.category.trim()) {
+        throw new BadRequestException('Category name cannot be empty');
+      }
+      category.category = updateData.category;
     }
 
-    category.category = name;
+    if (updateData.description !== undefined) {
+      category.description = updateData.description;
+    }
+
     await this.categoryRepository.save(category);
 
     return {
-      message: `Category with ID ${categoryId} updated successfully to '${name}'`,
+      message: `Category with ID ${categoryId} updated successfully.`,
     };
   }
+
+  // async updateCategory(
+  //   categoryId: number,
+  //   name: string,
+  // ): Promise<{ message: string }> {
+  //   const category = await this.categoryRepository.findOne({
+  //     where: { id: categoryId },
+  //   });
+
+  //   if (!category) {
+  //     throw new NotFoundException(`Category with ID ${categoryId} not found`);
+  //   }
+
+  //   if (!name) {
+  //     throw new BadRequestException('Category name cannot be empty');
+  //   }
+
+  //   category.category = name;
+  //   await this.categoryRepository.save(category);
+
+  //   return {
+  //     message: `Category with ID ${categoryId} updated successfully to '${name}'`,
+  //   };
+  // }
 
   async deleteCategory(categoryId: number): Promise<{ message: string }> {
     const category = await this.categoryRepository.findOne({
