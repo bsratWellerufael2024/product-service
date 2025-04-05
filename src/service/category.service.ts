@@ -61,30 +61,6 @@ export class CategoryService {
     };
   }
 
-  // async updateCategory(
-  //   categoryId: number,
-  //   name: string,
-  // ): Promise<{ message: string }> {
-  //   const category = await this.categoryRepository.findOne({
-  //     where: { id: categoryId },
-  //   });
-
-  //   if (!category) {
-  //     throw new NotFoundException(`Category with ID ${categoryId} not found`);
-  //   }
-
-  //   if (!name) {
-  //     throw new BadRequestException('Category name cannot be empty');
-  //   }
-
-  //   category.category = name;
-  //   await this.categoryRepository.save(category);
-
-  //   return {
-  //     message: `Category with ID ${categoryId} updated successfully to '${name}'`,
-  //   };
-  // }
-
   async deleteCategory(categoryId: number): Promise<{ message: string }> {
     const category = await this.categoryRepository.findOne({
       where: { id: categoryId },
