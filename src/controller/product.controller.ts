@@ -22,7 +22,7 @@ export class ProductController {
     return this.productService.deleteProductByName(productId);
   }
 
-  @EventPattern('product-updated')
+  @MessagePattern('product-updated') // <-- Use this instead of EventPattern
   async handleProductUpdate(payload: {
     productId: number;
     updateData: Partial<Products>;
@@ -35,7 +35,6 @@ export class ProductController {
     return { message: `Product ID ${productId} updated successfully` };
   }
 
-  
   @MessagePattern('get_products_by_ids')
   async getProductsByIds(
     @Payload() ids: string[],

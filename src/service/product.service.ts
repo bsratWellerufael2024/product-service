@@ -176,11 +176,7 @@ export class ProductService {
       message: `Product "${productId}" has been deleted successfully`,
     };
   }
-
-  async updateProduct(
-    productId: number,
-    updateData: UpdateProductDto,
-  ): Promise<ApiResponse<any>> {
+  async updateProduct(productId: number, updateData: UpdateProductDto) {
     const product = await this.productRepository.findOne({
       where: { productId },
     });
@@ -194,7 +190,6 @@ export class ProductService {
     Object.assign(product, updateData);
     const updatedProduct = await this.productRepository.save(product);
 
-    // Emitting event with consistent payload structure
     const eventPayload = {
       productId: updatedProduct.productId,
       productName: updatedProduct.productName,
@@ -206,14 +201,13 @@ export class ProductService {
       eventPayload,
     );
 
-    // Emit the event without wrapping in `data`
     this.redisClient.emit('product.updated', eventPayload);
 
-    return new ApiResponse(
-      true,
-      `Product ID ${productId} updated successfully`,
-      updatedProduct,
-    );
+    console.log('[ProductService] Returning success message');
+
+    return {
+      message: `Product "${productId}" has been updated successfully`,
+    };
   }
 
   async getProductsDetail(productIds: number[]) {
