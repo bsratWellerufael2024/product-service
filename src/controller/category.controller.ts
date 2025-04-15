@@ -25,6 +25,11 @@ export class CategoryController {
     return this.categoryService.updateCategory(payload.id, payload.updateData);
   }
 
+  @MessagePattern('get_category_by_id')
+  async getCategoryById(@Payload() categoryId: number) {
+    return this.categoryService.getCategoryById(categoryId);
+  }
+
   @MessagePattern('delete_category')
   async deleteCategory(
     @Payload() categoryId: number,

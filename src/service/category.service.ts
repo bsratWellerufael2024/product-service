@@ -31,6 +31,23 @@ export class CategoryService {
     }));
   }
 
+  async getCategoryById(categoryId: number) {
+  const category = await this.categoryRepository.findOne({
+    where: { id: categoryId },
+  });
+
+  if (!category) {
+    throw new NotFoundException(`Category with ID ${categoryId} not found`);
+  }
+
+  return {
+    id: category.id,
+    category: category.category,
+    description: category.description,
+  };
+}
+
+
   async updateCategory(
     categoryId: number,
     updateData: Partial<{ category?: string; description?: string }>,
