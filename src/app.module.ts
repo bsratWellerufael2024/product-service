@@ -19,6 +19,7 @@ import { ProductVariantService } from './service/variant.service';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtContants } from './constants/constant';
+import { QrCodeService } from './service/qr-code.service';
 @Module({
   imports: [
     JwtModule.register({
@@ -31,8 +32,12 @@ import { jwtContants } from './constants/constant';
         name: 'REDIS_CLIENT',
         transport: Transport.REDIS,
         options: {
-          host: 'localhost', // Change if Redis is hosted elsewhere
-          port: 6379, // Default Redis port
+          // host: 'localhost', 
+          host: process.env.REDIS_HOST || 'localhost',
+          //Change if Redis is hosted elsewhere
+          // port: 6379, // Default Redis port
+            port: Number(process.env.REDIS_PORT) || 6379,
+            // db: Number(process.env.REDIS_DB) || 0,
         },
       },
     ]),
@@ -76,6 +81,7 @@ import { jwtContants } from './constants/constant';
     CategoryService,
     UnitConversionService,
     ProductVariantService,
+    QrCodeService
   ],
 })
 export class AppModule {}

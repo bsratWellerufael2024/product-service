@@ -3,10 +3,14 @@ import { MessagePattern ,EventPattern} from "@nestjs/microservices";
 import { ProductService } from "src/service/product.service";
 import { Products } from "src/entities/product.entity";
 import { Payload } from "@nestjs/microservices";
-
+import { QrCodeService } from "src/service/qr-code.service"; 
+ import * as QRCode from 'qrcode';
 @Controller()
 export class ProductController {
-  constructor(private productService: ProductService) {}
+  constructor(
+    private productService: ProductService,
+    private readonly qrCodeService: QrCodeService,
+  ) {}
   @MessagePattern('product-created')
   createProduct(productData: any) {
     return this.productService.createProduct(productData);
@@ -46,5 +50,17 @@ export class ProductController {
   @MessagePattern('get_produts_details')
   async getProductsDetail({ productIds }: { productIds: number[] }) {
     return this.productService.getProductsDetail(productIds);
+  }
+
+  @MessagePattern('generate_qr')
+  async handleGenerateQr(@Payload() productId: number) {
+    const product = await this.productService.findById(productId);
+    if (!product) {
+      throw new Error('Product not found');
+    }
+
+    const qrData = `Product: ${product.productName}, Code: ${product.productCode}, Price: ${product.selling_price}`;
+    const qrImage = await QRCode.toDataURL(qrData);
+    return qrImage; // base64 string
   }
 }

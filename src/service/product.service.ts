@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-
+import { QrCodeService } from './qr-code.service';
 import { Category } from 'src/entities/category.entity';
 import { Products } from 'src/entities/product.entity';
 import { In, Repository } from 'typeorm';
@@ -21,6 +21,7 @@ export class ProductService {
     private categoryRepository: Repository<Category>,
     private eventEmitter: EventEmitter2,
     @Inject('REDIS_CLIENT') private readonly redisClient: ClientProxy,
+    private readonly qrCodeService: QrCodeService,
   ) {}
 
   async createProduct(productData: {
@@ -230,6 +231,19 @@ export class ProductService {
     });
 
     return map;
+  }
+
+  async findById(id: number): Promise<Products | null> {
+    return this.productRepository.findOne({
+      where: { productId: id },
+    });
+  }
+  async generateQRCode(productId: number): Promise<string> {
+    const product = await this.findById(productId);
+    if (!product) throw new NotFoundException('Product not found');
+
+    const qrData = `Product: ${product.productName}\nCode: ${product.productCode}\nPrice: ${product.selling_price}`;
+    return this.qrCodeService.generateQRCode(qrData);
   }
 }
 
